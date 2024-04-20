@@ -1,8 +1,8 @@
 # Thunderbird Auto Configuration Server (TACS)
-Provides a simple Thunderbird configuration web server with templating by group or login
+Предоставляет простой web-сервер конфигурации Thunderbird с шаблонизацией по группам или логину
 
-## CLI
-The compiled application has built-in help and configuration templates:
+## Командная строка
+Скомпилированное приложение имеет встроенную справку и шаблоны конфигурации:
 ```bash
 ./tacs -h
 Thunderbird AutoConfig Server (TACS) help.
@@ -25,7 +25,7 @@ Program arguments:
   -help
         shows startup help (this)
 ```
-Getting a configuration template:
+Получение шаблонна конфигурации:
 ```bash
 ./tacs -example-scheme > scheme.yaml
 cat ./scheme.yaml
@@ -126,7 +126,7 @@ cat ./scheme.yaml
     #    photo: raw:jpegPhoto
 ```
 
-Starting the server:
+Запуск сервера:
 ```bash
 tree ./
 .
@@ -148,20 +148,20 @@ TACS_LDAP_PASSWORD=Qwerty \
 ./tacs
 ```
 
-## Templates
-### General
-The directory for searching for templates is specified in `scheme.yaml`
+## Шаблоны
+### Общее
+Каталог для поиска шаблонов указывается в `scheme.yaml`
 ```YAML
 ---
 templateDir: templates
 ```
-TACS traverses all subdirectories except symbolic links, analyzing and loading *.tmpl files into memory.
+TACS проходит по всем подкаталогам, кроме символических ссылок, анализируя и загружая в память `*.tmpl` файлы.
 
-To get acquainted with go-templates, read [documentation](https://pkg.go.dev/text/template).
+Для знакомства с go-шаблонами, читай [документацию](https://pkg.go.dev/text/template).
 
-Below are the features of working with templates in TACS:
-- Template declaration is done by the `{{define "template_name"}}...{{end}}` block.
-- The template name is specified in `scheme.yaml`, in the `template` property and is used when generating the configuration page:
+Ниже представлены особенности работы с шаблонами в TACS:
+- Объявление шаблона выполняется блоком `{{define "template_name"}}...{{end}}`
+- Имя шаблона указывается в `scheme.yaml`, в свойстве `template` и используется при генерации страницы конфигурации:
   ```YAML
   local:
     default:
@@ -179,7 +179,7 @@ Below are the features of working with templates in TACS:
       - group: ...
         template: template_name
   ```
-- Templates can call other templates:
+- Шаблоны могут вызывать другие шаблоны:
   ```yaml
   {{define "temp1"}}
   ...
@@ -192,15 +192,16 @@ Below are the features of working with templates in TACS:
   {{template "temp2"}}
   {{end}}
   ```
-- The template name must be unique compared to others, otherwise templates may overwrite each other.
-- You can use variables in the template to substitute values from `scheme.yaml`/LDAP:
+- Имя шаблона должно быть уникальным по сравнению с остальными,
+  иначе шаблоны могут переписать друг-друга.
+- В шаблоне можно использовать переменные для подстановки значений из `scheme.yaml`/LDAP:
   ```yaml
-  # All variables are stored at "dot":
+  # Все переменные хранятся в "точке":
   {{define "default"}}
   {{.var_name}}
   {{end}}
   ```
-- Variables are declared in `scheme.yaml`, in the `fields` property:
+- Переменные объявляются  в `scheme.yaml`, в свойстве `fields`:
   ```yaml
   local:
     default:
@@ -221,20 +222,21 @@ Below are the features of working with templates in TACS:
       fields:
         template_key: ldap_field_with_value
   ```
-### Templates + configuration for Thunderbird
-Using [PrefApi]((#prefapi)), prepares the [template](#general) (example `default.tmpl`)
+### Шаблоны + конфигурация для Thunderbird
+Используя [PrefApi](#prefapi), подготавливается [шаблон](#общее) (например `default.tmpl`)
 
-The basis for it can be the `pref.js` file in the directory of the **already configured** thunderbird profile:
+Основой для него может быть файл `pref.js` в каталоге **уже настроенного профиля** thunderbird:
 - Windows - `%APPDATA%\Thunderbird\Profiles\*\prefs.js`
 - Linux: - `~/.thunderbird/*/prefs.js`
 
-> **Attention!** 
-> Changing the `pref.js` file itself is useless, since it is updated by the mail client at runtime.
+> **Внимание!** 
+> Изменение самого файла `pref.js` бесполезно, поскольку он обновляется почтовым клиентом в процессе работы.
 
 # Thunderbird
-Below there will be **brief** excerpts from various sources that will allow you to prepare your email client for automatic configuration.
+Ниже будут **краткие** выжимки из различных источников, которые позволят подготовить
+почтовый клиент к автоматической настройке.
 
-Sources:
+Источники:
 - [The SIPB Thunderbird Locker - Maintainers
 ](https://web.mit.edu/~thunderbird/www/maintainers/autoconfig.html)
 - [MCD, Mission Control Desktop, AKA AutoConfig](https://udn.realityripple.com/docs/Archive/Misc_top_level/MCD,_Mission_Control_Desktop_AKA_AutoConfig)
@@ -244,32 +246,32 @@ Sources:
 - [Customizing Firefox Using AutoConfig](https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig)
 
 ## PrefApi
-are configuration functions that control the parameters of the mail client when it starts.
+\- это функции конфигурирования, управляющие параметрами почтового клиента при его запуске.
 
-The PrefApi functions are defined in the file `$THUNDERBIRD_FOLDER/omni.ja/defaults/autoconfig/prefcalls.js`:
-- `getPrefBranch()` - gets the root of the preference tree. **Not directly used**.
-- `pref(prefName, value)` - changes the current value to the specified one. **Most often used**.
-- `defaultPref(prefName, value)` - sets the parameter to its default value.
-   That is if the user leaves the field blank or resets the settings, the specified value will be set.
-- `lockPref(prefName, value)` - locks a parameter at the specified value.
-    Users cannot change locked parameters.
+Определение функций PrefApi выполнено в файле `$THUNDERBIRD_FOLDER/omni.ja/defaults/autoconfig/prefcalls.js`:
+- `getPrefBranch()` - получает корень дерева предпочтений. **Напрямую не используется**.
+- `pref(prefName, value)` - меняет текущее значение на указанное. **Используется наиболее часто**.
+- `defaultPref(prefName, value)` - устанавливает для параметра значение по умолчанию.
+    Т.е. если пользователь оставляет поле пустым или выполняет сброс настроек, будет выставлено указанное значение.
+- `lockPref(prefName, value)` - блокирует параметр на указанном значении.
+    Пользователи не могут изменить заблокированные параметры.
 - `unlockPref(prefName)` - разблокирует, ранее была заблокированный, параметр.
 - `getPref(prefName)` - получает значение указанного параметра.
-- `displayError(funcname, message)`- displays an error dialog when starting Thunderbird. **The only means of debugging variables**.
-- `getenv(name)` - gets the value of the specified environment variable from the user's environment.
-- Functions for working with LDAP. They don't support authorization, so they're useless:
-  - `setLDAPVersion(version)` - sets the LDAP version used by the server.
-  - `getLDAPAttributes(host, base, filter, attribs)` - retrieves LDAP attributes from a given server.
-  - `getLDAPValue(str, key)` - gets the LDAP value for a given row, filtered by key.
+- `displayError(funcname, message)`- выводит диалоговое окно с сообщением об ошибке при запуске Thunderbird. **Единственное средство отладки переменных**.
+- `getenv(name)` - получает значение указанной переменной среды из среды пользователя.
+- Функции работы с LDAP. Не поддерживают авторизацию, поэтому бесполезны:
+  - `setLDAPVersion(version)` - устанавливает версию LDAP, используемую сервером.
+  - `getLDAPAttributes(host, base, filter, attribs)` - получает атрибуты LDAP с данного сервера.
+  - `getLDAPValue(str, key)` - получает значение LDAP для заданной строки, отфильтрованное по ключу.
 
-## Configuration files
+## Файлы конфигурации
 ### thunderbird.cfg
-The settings file is JavaScript, so it has access to variables, functions, etc.
-To use an external source of settings, write the `thunderbird.cfg` script:
+Файл настроек представляет из себя JavaScript, поэтому ему доступны переменные, функции и т.д.
+Для использования внешнего источника настроек, пишется скрипт `thunderbird.cfg`:
 ```js
-// Loading settings from the server
+// Загрузка настроек с сервера
 try {
-    // Getting username from OS
+    // Получение имени пользователя из ОС
     if (getenv("USER") != "") {
         // *NIX settings
         var env_user = getenv("USER");
@@ -277,51 +279,51 @@ try {
         // Windows settings
         var env_user = getenv("USERNAME");
     }
-// Specifying a configuration server
+// Указание сервера конфигурации
 pref("autoadmin.global_config_url", "http://server_host/"+env_user);
-// Don't add mail variable to request
+// Не добавлять переменную почты в запрос
 pref("autoadmin.append_emailaddr", false);
  
 } catch (e) {
     displayError("pref", e);
 }
 ```
- and placed in the program directory:
+ и кладётся в каталог программы:
 - Windows - `C:\Program Files (x86)\Mozilla Thunderbird\thunderbird.cfg`
 - Linux - `/usr/lib/thunderbird/thunderbird.cfg`
 
 ### autoconfig.js
-In order for `thunderbird.cfg` to be used, you need to create a file `autoconfig.js`:
+Для того, чтобы `thunderbird.cfg` был задействован, необходимо создать файл `autoconfig.js`:
 ```js
-// Specify the configuration file
+// Указываю файл конфигурации
 pref('general.config.filename', 'thunderbird.cfg');
-// Disabling bit shifting to read a regular file
+// Отключаю битовое смещение,чтобы читать обычный файл
 pref('general.config.obscure_value', 0);
 ```
-and put it on the way:
+и кладу его по пути:
 - Windows - `C:\Program Files\Mozilla Thunderbird\defaults\pref\autoconf.js`
 - Linux - `/usr/share/thunderbird/defaults/pref/autoconfig.js`
 
 
-# Security
-The code was checked by static analyzers that are focused on finding vulnerabilities.
+# Безопасность
+Код проверен статическими анализаторами, которые ориентированы на поиск уязвимостей.
 
 ## GoSec
-Installation:
+Установка:
 ```sh
 go install github.com/securego/gosec/v2/cmd/gosec@latest
 ```
-Launch:
+Запуск:
 ```sh
 gosec ./...
 ```
 ## Go Vulnerability
-Installation:
+Установка:
 ```sh
 go install golang.org/x/vuln/cmd/govulncheck@latest
 ```
 
-Launch:
+Запуск:
 ```sh
 govulncheck ./...
 ```
