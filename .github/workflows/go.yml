@@ -24,7 +24,7 @@ jobs:
 
       - name: Build
         run: |
-          CGO_ENABLED=0; GOOS=linux; GOARCH=amd64; go build -ldflags='-s -w' -v -o tacs ./...
+          CGO_ENABLED=0; GOOS=linux; GOARCH=amd64; go build -ldflags='-s -w' -v -o tacs ./... ;
           zip --jink-paths tacs README* LICENSE
 
       - name: Create release
