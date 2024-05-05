@@ -1,0 +1,41 @@
+{{define "with-ldap-photo"}}
+    {{/*
+    Требуемые поля:
+    cn              - полное имя пользователя
+    mail            - адрес почты
+    position        - должность пользователя
+    company         - название организации
+    photo           - фото из LDAP
+    telephoneNumber - номер телефона
+    */}}
+
+    {{template "0_core"       }}
+    {{template "01_imap"     .}}
+    {{template "02_smtp"     .}}
+    {{template "03_abook"     }}
+    {{template "04_calendar" .}}
+    {{template "05_ids"      .}}
+    {{template "ldap_signature_with_photo" .}}
+    {{template "07_account"  }}
+    {{template "08_other"}}
+    {{end}}
+
+
+    {{/* Малый блок, объявляющий настройки подписи */}}
+    {{define "ldap_signature_with_photo"}}
+    pref("mail.identity."+id+".htmlSigFormat",true);
+    pref("mail.identity."+id+".attach_signature", false);
+    pref("mail.identity."+id+".htmlSigText",'{{- template "html-signature" . -}}');
+    {{end}}
+
+
+    {{/* Фото из LDAP */}}
+    {{- define "ldap_photo" -}}
+    <img src="data:image/jpeg;base64,{{ .photo }}" class="photo" border="0"/>
+    {{- end -}}
+
+
+    {{/* Собственно подпись в HTML формате */}}
+    {{- define "html-signature" -}}
+    <style>.contactHeader {color: #fe403c;font-weight: bold;display:block;}.text {line-height: 1.4;display: block;height: 100%;font-family:arial, helvetica, sans-serif;} .tdContact {padding: 4px 0px 0px 7px;width:252px;vertical-align: top;border-left: 2px solid #00aeef;}.tdCompany {padding: 6px 2px 0px 0px;text-align: right;width: 343px;vertical-align: top;}.tdPhoto {width: 105px;vertical-align: top;padding-right: 7px;}.photo {padding: 0;display:block;width: 100px;}</style><table border="0" cellpadding="0" cellspacing="0"><tr><td class="tdPhoto">{{template "ldap_photo" .}}</td><td class="tdContact"><span class="contactHeader">С уважением,</span><span class="contactHeader">{{ .cn }}</span><span class="text">{{ .position }}</span><span class="text">Внутр.тел.: {{.telephoneNumber }}</span></td><td class="tdCompany"><span class="text">{{.company }}</span><span class="text">{{ .address }}</span></td></tr></table>
+    {{- end -}}

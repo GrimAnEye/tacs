@@ -1,0 +1,19 @@
+{{define "ldap-default"}}
+    {{- /*
+    Требуемые поля:
+    cn              - полное имя пользователя
+    mail            - адрес почты
+    position        - должность пользователя
+    company         - название организации
+     */ -}}
+    {{template "0_core"       }}
+    {{template "01_imap"     .}}
+    {{template "02_smtp"     .}}
+    {{template "03_abook"     }}
+    {{template "04_calendar" .}}
+    {{template "05_ids"      .}}
+    {{template "06_signatute".}}
+    {{template "07_account"  }}
+    {{template "08_other"}}
+
+{{end}}

@@ -1,0 +1,127 @@
+---
+# Directory to search for templates
+# The search is also performed in subdirectories, but without following symbolic links
+# Required file extension: *.tmpl
+#templateDir: templates
+# Block for local processing of user logins.
+# Executes first because it doesn't require external requests.
+# If there is a match, subsequent stages are not checked
+#local:
+
+  # Default fields and properties
+  #default:
+    # Name of the GO template (*.tmpl), with insert fields - {{define "templateName"}}
+    #template: default
+    # A key-value map (hash table) that is used to fill the template.
+    # Can be overridden at the user level.
+    # If the field is not present at the user level, it will be set to the specified value.
+    # The key is a variable declared in the template - {{ .variableName }}
+    # Value - what will be substituted for the key
+    #fields:
+    #  cn: user
+    #  mail: mail@example.com
+    #  telephoneNumber:
+    #  position: no_body
+    #  company: "\"Example\""
+
+  # List of users to handle requests.
+  # Is a hash table of "username: params",
+  # so each iteration of the key overwrites the previous values
+  #list:
+  #root:
+  #  template: root
+  #  fields:
+  #    company: ""
+  #    mail: root@example.com
+  #    cn: Administrator
+  #    signatureIsHTML: true
+  #    signature: 'Sincerely\nroot​​​​​​'
+
+# Block for processing users from LDAP.
+
+# If there is a match, subsequent stages are not checked
+
+#ldap:
+  # A unique field that identifies the user, a filter compiled for this:
+  #  (uid=username), example - (sAMAccountName=username)
+  #uid: sAMAccountName
+
+  # Ldap path where to start the search
+  #searchBase: OU=SystemUsers,OU=Corp,DC=corp,DC=domain,DC=com
+
+  # Additional filter for user search. Added to the filter with uid:
+  # (&(uid=username)filter)
+  # In this case, search only for enabled users:
+  #filter: (!(userAccountControl:1.2.840.113556.1.4.803:=2))(objectCategory=person)(objectClass=user)
+
+  # Search in subgroups?
+  # If true - adds the option ":1.2.840.113556.1.4.1941:" to the filter
+  #subgroups: true
+
+  # Should I generate a response for a user who is not a member of any declared group?
+  # In this case, a default section must be declared
+  #allowWithoutGroups: true
+
+  # A key-value map (hash table) that is used to fill the template.
+  # Can be overridden at the ldap group level.
+  # If the field is not present at the user level, it will be set to the specified value.
+  # The key is a variable declared in the template - {{ .variableName }}
+  # Value - fields taken from the user's LDAP profile.
+  # Note.
+  # If you prefix an LDAP field name with "raw:", the value will be queried raw and base64 encoded
+  #default:
+  #  template: default
+  #  fields:
+  #    cn: cn
+  #    mail: mail
+  #    telephoneNumber: telephoneNumber
+  #    position: position
+  #    company: company
+  #    photo: raw:jpegPhoto
+  #list:
+    # The list of groups by which the user's groups are matched.
+    # The check is performed one by one, and the first match
+    # interrupts further processing.
+    #- group: "CN=Domain Users,OU=SystemUsers,OU=Corp,DC=corp,DC=domain,DC=com"
+    #  template: default
+    #  fields:
+    #    cn: cn
+    #    mail: mail
+    #    telephoneNumber: telephoneNumber
+    #    position: position
+    #    company: company
+    #    photo: raw:jpegPhoto
+
+templateDir: templates
+
+local:
+  default:
+    template: default
+  list:
+    root:
+ldap:
+  uid: sAMAccountName
+  usersSearchBase: OU=Users,DC=corp,DC=example,DC=com
+  groupsSearchBase: OU=Groups,DC=corp,DC=example,DC=com
+  filter: (!(userAccountControl:1.2.840.113556.1.4.803:=2))(objectCategory=person)(objectClass=user)
+  subgroups: true
+  allowWithoutGroups: true
+
+  default:
+    template: ldap-default
+    fields:
+      cn: cn
+      mail: mail
+      position: description
+      company: company
+  list:
+    - group: "CN=tacs-with-photo,OU=tacs,OU=Groups,DC=corp,DC=example,DC=com"
+      template: with-ldap-photo
+      fields:
+        cn: cn
+        mail: mail
+        position: position
+        company: company
+        photo: raw:jpegPhoto
+        address: physicalDeliveryOfficeName
+        telephoneNumber: telephoneNumber
