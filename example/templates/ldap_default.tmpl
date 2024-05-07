@@ -1,10 +1,10 @@
 {{define "ldap-default"}}
     {{- /*
-    Требуемые поля:
-    cn              - полное имя пользователя
-    mail            - адрес почты
-    position        - должность пользователя
-    company         - название организации
+    required fields:
+    //	.cn              - users fullname
+    //	.mail            - users email
+    //	.position        - users potion
+    //	.company         - company name
      */ -}}
     {{template "0_core"       }}
     {{template "01_imap"     .}}

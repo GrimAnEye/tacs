@@ -1,6 +1,5 @@
 {{define "0_core"}}
-// JS переменные, используемые как глобальные
-// подстановки в шаблонах ниже
+// JS variables used as global wildcards in the templates below
 
 var imap = "imapCORP";			// 01_
 var smtp = "smtpCORP";			// 02_
@@ -11,17 +10,17 @@ var id = "idCORP";				// 05_
 var account = "accountCORP";	// 07_
 /*---other---*/					// 08_
 
-{{- /*Go-template переменные, приходящие как данные пользователя:
-//	.cn              - полное имя пользователя
-//	.mail            - адрес почты
-//	.telephoneNumber - внутренний номер телефона
-//	.position        - должность пользователя
-//	.company         - название организации
+{{- /*Go-template variables as userdata:
+//	.cn              - users fullname
+//	.mail            - users email
+//	.telephoneNumber - uesrs internal phone number
+//	.position        - users potion
+//	.company         - company name
 //*/ -}}
 {{end}}
 
 {{define "01_imap"}}
-// IMAP-сервер
+// IMAP-server
 pref("mail.server."+imap+".hostname", "imap.corp.example.com");
 pref("mail.server."+imap+".name", '{{.mail}}');
 pref("mail.server."+imap+".userName", '{{.mail}}');
@@ -34,14 +33,15 @@ pref("mail.server.server1.check_new_mail", "true");
 {{end}}
 
 {{define "02_smtp"}}
-// Настройки SMTP сервера
+// SMTP-server settings
 pref("mail.smtpserver."+smtp+".authMethod", 3);
 pref("mail.smtpserver."+smtp+".description", smtp);
 pref("mail.smtpserver."+smtp+".hostname", "smtp.corp.example.com");
 pref("mail.smtpserver."+smtp+".port", 465);
 pref("mail.smtpserver."+smtp+".try_ssl", 3);
 pref("mail.smtpserver."+smtp+".username", '{{.mail}}');
-// Добавляем smtp-сервер в список
+
+// Add the smtp server to the list
 var servers = getPref("mail.smtpservers");
 {
 	var servers_s = servers+",";
@@ -54,7 +54,7 @@ pref("mail.smtp.defaultserver", smtp);
 {{end}}
 
 {{define "03_abook"}}
-// Создаю адресную книгу
+// Creating an address book
 pref("ldap_2.servers."+book+".uri", "ldap://ldap-zims.corp.example.com/dc=example,dc=com??sub?(|(objectclass=zimbraAccount)(objectclass=zimbraDistributionList))");
 pref("ldap_2.servers."+book+".auth.dn", "");
 pref("ldap_2.servers."+book+".auth.saslmech", "");
@@ -62,23 +62,24 @@ pref("ldap_2.servers."+book+".description", "Colleagues");
 pref("ldap_2.servers."+book+".filename", "ldap.sqlite");
 pref("ldap_2.servers."+book+".maxHits", 300);
 
-// Автодополнение адресов из книги сотрудников
+// Autofill from address book
 pref("ldap_2.autoComplete.directoryServer", "ldap_2.servers."+book);
 pref("ldap_2.autoComplete.useDirectory", true);
 {{end}}
 
 {{define "04_calendar"}}
-// Добавляем календарь из zimbra
+// Adding a calendar from zimbra
 pref("calendar.registry."+calendar+".cache.enabled", false);
 pref("calendar.registry."+calendar+".calendar-main-default", true);
 pref("calendar.registry."+calendar+".calendar-main-in-composite", true);
 pref("calendar.registry."+calendar+".color", "#ffb300");
 pref("calendar.registry."+calendar+".imip.identity.key", id);
-pref("calendar.registry."+calendar+".name", "Ежедневник Zimbra");
+pref("calendar.registry."+calendar+".name", "Zimbra calendar");
 pref("calendar.registry."+calendar+".type", "caldav");
 pref("calendar.registry."+calendar+".uri", 'https://zimbra.corp.example.com/dav/{{.mail}}/Calendar');
 pref("calendar.registry."+calendar+".username", '{{.mail}}');
-// Добавляем календарь в список
+
+// Add a calendar to the list
 var cal = getPref("calendar.list.sortOrder");
 {
 	var cal_s = cal+" ";
@@ -90,7 +91,7 @@ pref("calendar.list.sortOrder", cal);
 {{end}}
 
 {{define "05_ids"}}
-//Создаю аккаунт
+// Create account
 pref("mail.identity."+id+".fullName", '{{.cn}}');
 pref("mail.identity."+id+".smtpServer", smtp);
 pref("mail.identity."+id+".useremail", '{{.mail}}');
@@ -98,13 +99,13 @@ pref("mail.identity."+id+".organization", '{{.company}}');
 {{end}}
 
 {{define "06_signatute"}}
-// Составляю подпись
+// Create signature
 defaultPref("mail.identity."+id+".htmlSigFormat",false);
 defaultPref("mail.identity."+id+".htmlSigText",'С уважением\n{{.cn}}{{.position}}\n{{.company}}{{if .telephoneNumber}}\nВнутр.тел.: {{.telephoneNumber}}{{end}}');
 {{end}}
 
 {{define "07_account"}}
-// Привязываем ID к аккаунту
+// Linking ID to account
 pref("mail.account."+account+".identities", id);
 pref("mail.account."+account+".server", imap);
 
@@ -120,10 +121,10 @@ pref("mail.accountmanager.defaultaccount", account);
 {{end}}
 
 {{define "08_other"}}
-// Прочие настройки
-pref("mail.rights.version", 1); // Отключаем полосочку "Узнайте о своих правах" при первом запуске
+// Other settings
+pref("mail.rights.version", 1);
 pref("mailnews.start_page.enabled", false);
-pref("app.update.enabled", false); // Предположительно отключаю автообновление
+pref("app.update.enabled", false);
 pref("app.update.auto", false);
 pref("app.update.silent",false);
 {{end}}
