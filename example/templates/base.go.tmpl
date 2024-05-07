@@ -1,0 +1,129 @@
+{{define "0_core"}}
+// JS переменные, используемые как глобальные
+// подстановки в шаблонах ниже
+
+var imap = "imapCORP";			// 01_
+var smtp = "smtpCORP";			// 02_
+var book = "abookCORP";			// 03_
+var calendar = "calendarCORP";	// 04_
+var id = "idCORP";				// 05_
+/*---signatute---*/				// 06_
+var account = "accountCORP";	// 07_
+/*---other---*/					// 08_
+
+{{- /*Go-template переменные, приходящие как данные пользователя:
+//	.cn              - полное имя пользователя
+//	.mail            - адрес почты
+//	.telephoneNumber - внутренний номер телефона
+//	.position        - должность пользователя
+//	.company         - название организации
+//*/ -}}
+{{end}}
+
+{{define "01_imap"}}
+// IMAP-сервер
+pref("mail.server."+imap+".hostname", "imap.corp.example.com");
+pref("mail.server."+imap+".name", '{{.mail}}');
+pref("mail.server."+imap+".userName", '{{.mail}}');
+pref("mail.server."+imap+".port", 993);
+pref("mail.server."+imap+".socketType", 3);
+pref("mail.server."+imap+".type", "imap");
+// Включение проверок всех каталогов почты
+pref("mail.server.default.check_all_folders_for_new", true);
+pref("mail.server.server1.check_new_mail", "true");
+{{end}}
+
+{{define "02_smtp"}}
+// Настройки SMTP сервера
+pref("mail.smtpserver."+smtp+".authMethod", 3);
+pref("mail.smtpserver."+smtp+".description", smtp);
+pref("mail.smtpserver."+smtp+".hostname", "smtp.corp.example.com");
+pref("mail.smtpserver."+smtp+".port", 465);
+pref("mail.smtpserver."+smtp+".try_ssl", 3);
+pref("mail.smtpserver."+smtp+".username", '{{.mail}}');
+// Добавляем smtp-сервер в список
+var servers = getPref("mail.smtpservers");
+{
+	var servers_s = servers+",";
+	if (!(servers_s.indexOf(smtp+",")+1)) {
+		servers = servers + ","+smtp;
+	}
+}
+pref("mail.smtpservers", servers);
+pref("mail.smtp.defaultserver", smtp);
+{{end}}
+
+{{define "03_abook"}}
+// Создаю адресную книгу
+pref("ldap_2.servers."+book+".uri", "ldap://ldap-zims.corp.example.com/dc=example,dc=com??sub?(|(objectclass=zimbraAccount)(objectclass=zimbraDistributionList))");
+pref("ldap_2.servers."+book+".auth.dn", "");
+pref("ldap_2.servers."+book+".auth.saslmech", "");
+pref("ldap_2.servers."+book+".description", "Colleagues");
+pref("ldap_2.servers."+book+".filename", "ldap.sqlite");
+pref("ldap_2.servers."+book+".maxHits", 300);
+
+// Автодополнение адресов из книги сотрудников
+pref("ldap_2.autoComplete.directoryServer", "ldap_2.servers."+book);
+pref("ldap_2.autoComplete.useDirectory", true);
+{{end}}
+
+{{define "04_calendar"}}
+// Добавляем календарь из zimbra
+pref("calendar.registry."+calendar+".cache.enabled", false);
+pref("calendar.registry."+calendar+".calendar-main-default", true);
+pref("calendar.registry."+calendar+".calendar-main-in-composite", true);
+pref("calendar.registry."+calendar+".color", "#ffb300");
+pref("calendar.registry."+calendar+".imip.identity.key", id);
+pref("calendar.registry."+calendar+".name", "Ежедневник Zimbra");
+pref("calendar.registry."+calendar+".type", "caldav");
+pref("calendar.registry."+calendar+".uri", 'https://zimbra.corp.example.com/dav/{{.mail}}/Calendar');
+pref("calendar.registry."+calendar+".username", '{{.mail}}');
+// Добавляем календарь в список
+var cal = getPref("calendar.list.sortOrder");
+{
+	var cal_s = cal+" ";
+	if (!(cal_s.indexOf(calendar+" ")+1)) {
+		cal = cal + " "+calendar;
+	}
+}
+pref("calendar.list.sortOrder", cal);
+{{end}}
+
+{{define "05_ids"}}
+//Создаю аккаунт
+pref("mail.identity."+id+".fullName", '{{.cn}}');
+pref("mail.identity."+id+".smtpServer", smtp);
+pref("mail.identity."+id+".useremail", '{{.mail}}');
+pref("mail.identity."+id+".organization", '{{.company}}');
+{{end}}
+
+{{define "06_signatute"}}
+// Составляю подпись
+defaultPref("mail.identity."+id+".htmlSigFormat",false);
+defaultPref("mail.identity."+id+".htmlSigText",'С уважением\n{{.cn}}{{.position}}\n{{.company}}{{if .telephoneNumber}}\nВнутр.тел.: {{.telephoneNumber}}{{end}}');
+{{end}}
+
+{{define "07_account"}}
+// Привязываем ID к аккаунту
+pref("mail.account."+account+".identities", id);
+pref("mail.account."+account+".server", imap);
+
+var accounts = getPref("mail.accountmanager.accounts");
+{
+	var accounts_s = accounts + ",";
+	if (!(accounts_s.indexOf(account+",") + 1)) {
+		accounts = accounts + ","+account;
+	}
+}
+pref("mail.accountmanager.accounts", accounts);
+pref("mail.accountmanager.defaultaccount", account);
+{{end}}
+
+{{define "08_other"}}
+// Прочие настройки
+pref("mail.rights.version", 1); // Отключаем полосочку "Узнайте о своих правах" при первом запуске
+pref("mailnews.start_page.enabled", false);
+pref("app.update.enabled", false); // Предположительно отключаю автообновление
+pref("app.update.auto", false);
+pref("app.update.silent",false);
+{{end}}

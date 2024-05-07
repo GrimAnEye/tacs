@@ -26,3 +26,5 @@ tacs*
 .vscode/settings.json
 *.tmpl
 *.yaml
+
+!example/**
